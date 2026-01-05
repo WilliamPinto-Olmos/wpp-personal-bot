@@ -11,6 +11,7 @@ import {
   GroupValidator,
   CharacterLimitValidator,
   FeaturePermissionValidator,
+  MaintenanceValidator,
   IntentExtractor,
 } from "./pipeline/index.js";
 import {
@@ -22,8 +23,14 @@ import {
   SummaryHandler,
   InfoHandler,
 } from "./intents/index.js";
+import {
+  IMessageChannel,
+  WhatsAppChannel,
+  ConsoleChannel,
+} from "./channels/index.js";
 import { createServer, startServer } from "./server/index.js";
 import type { IncomingMessage, ProcessedMessage } from "./types/index.js";
+import { MessagePersistenceValidator } from "./pipeline/validators/message-channel.validator.js";
 
 /**
  * Main application entry point.
@@ -40,15 +47,27 @@ async function main(): Promise<void> {
   const client = await createClient();
   console.log("[App] WhatsApp client connected");
 
+  const messageChannel: IMessageChannel = config.bot.dryRun
+    ? new ConsoleChannel()
+    : new WhatsAppChannel(client);
+
+  console.log(
+    `[App] Using ${
+      config.bot.dryRun ? "Console (Dry Run)" : "WhatsApp"
+    } channel`
+  );
+
   const intentRegistry = new IntentRegistry();
   intentRegistry.register(new SummaryHandler(client));
   intentRegistry.register(new InfoHandler());
 
   const pipeline = new MessagePipeline()
     .addStep(new TriggerValidator())
+    .addStep(new MaintenanceValidator())
     .addStep(new GroupValidator())
     .addStep(new CharacterLimitValidator())
     .addStep(new IntentExtractor())
+    .addStep(new MessagePersistenceValidator())
     .addStep(new FeaturePermissionValidator(featuresRepository));
 
   console.log(
@@ -77,10 +96,14 @@ async function main(): Promise<void> {
     }
 
     if (response) {
-      await sendReply(client, message.chatId, response, message.id);
-      console.log("[App] Response sent");
+      await messageChannel.sendReply(message.chatId, response, message.id);
+      console.log("[App] Response handled by channel");
 
-      if (context.intent && context.intent.type !== "unknown") {
+      if (
+        context.intent &&
+        context.intent.type !== "unknown" &&
+        context.shouldSaveResponse
+      ) {
         const processedMessage: ProcessedMessage = {
           id: message.id,
           chatId: message.chatId,

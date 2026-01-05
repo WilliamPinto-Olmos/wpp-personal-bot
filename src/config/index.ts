@@ -10,11 +10,13 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
 
   bot: {
-    triggerPhrase: "willy willito",
+    triggerPhrase: process.env.TRIGGER_PHRASE ?? "",
     maxInputCharacters: 200,
     maxOutputCharacters: 20000,
     defaultMessageCount: 100,
     maxMessageCount: 1000,
+    dryRun: process.env.DRY_RUN === "true",
+    maintenanceMode: process.env.MAINTENANCE_MODE === "true",
   },
 
   whatsapp: {
@@ -38,6 +40,10 @@ export function validateConfig(): void {
 
   if (errors.length > 0) {
     throw new Error(`Configuration errors:\n${errors.join("\n")}`);
+  }
+
+  if (!config.bot.triggerPhrase) {
+    throw new Error("TRIGGER_PHRASE is required");
   }
 }
 

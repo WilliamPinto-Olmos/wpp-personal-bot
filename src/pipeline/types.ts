@@ -11,6 +11,7 @@ export interface PipelineContext {
   response?: string;
   shouldContinue: boolean;
   errorMessage?: string;
+  shouldSaveResponse?: boolean;
 }
 
 /**

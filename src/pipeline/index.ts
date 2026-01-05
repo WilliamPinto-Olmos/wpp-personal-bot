@@ -10,5 +10,6 @@ export {
   GroupValidator,
   CharacterLimitValidator,
   FeaturePermissionValidator,
+  MaintenanceValidator,
   type GroupValidatorOptions,
 } from "./validators/index.js";
