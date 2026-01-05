@@ -15,10 +15,21 @@ Extiende las funcionalidades de lo que actualmente proporciona Meta mediante @Me
   - **Mantenimiento**: Responde automáticamente informando que está fuera de servicio temporalmente.
 - **Abstracción de Canales**: Arquitectura que separa la lógica de negocio del medio de entrega (WhatsApp/Consola/Email/Etc).
 
+## Ejemplos
+
+**Funcionamiento**
+<img width="578" height="340" alt="Captura de pantalla 2026-01-04 a la(s) 10 33 37 p m" src="https://github.com/user-attachments/assets/312c6454-d54f-4809-846b-586cfa1b9125" />
+
+**Resumen por contacto**
+<img width="571" height="226" alt="Captura de pantalla 2026-01-04 a la(s) 10 33 18 p m" src="https://github.com/user-attachments/assets/c1556ec2-1476-41e6-bac1-055745af0d3e" />
+
+**Resumen por número de mensajes**
+<img width="578" height="301" alt="Captura de pantalla 2026-01-04 a la(s) 11 10 07 p m" src="https://github.com/user-attachments/assets/b9fb49dd-1200-4ed9-841a-790463ffef5a" />
+
 ## Roadmap
 
 - [x] Implementar MVP para resumir conversaciones.
-- [x] Soporte de filtrado avanzado de conversaciones.
+- [ ] Soporte de filtrado avanzado de conversaciones, ejemplo por "esta semana" o "el mes pasado".
 - [ ] Implementar soporte para recordatorios.
 - [ ] Implementar soporte para búsqueda en la web.
 - [ ] Implementar soporte para resumir multimedia (archivos, enlaces, etc).
