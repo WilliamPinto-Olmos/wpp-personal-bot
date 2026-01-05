@@ -22,6 +22,10 @@ export async function createClient(): Promise<Whatsapp> {
     statusFind: (status, session) => {
       console.log(`[WhatsApp] Session "${session}" status: ${status}`);
     },
+    puppeteerOptions: {
+      headless: config.whatsapp.headless,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    },
   });
 
   return clientInstance;
