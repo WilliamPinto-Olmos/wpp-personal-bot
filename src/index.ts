@@ -30,7 +30,7 @@ import {
 } from "./channels/index.js";
 import { createServer, startServer } from "./server/index.js";
 import type { IncomingMessage, ProcessedMessage } from "./types/index.js";
-import { MessagePersistenceValidator } from "./pipeline/validators/message-channel.validator.js";
+import { MessagePersistenceValidator } from "./pipeline/validators/message-persistence.validator.js";
 
 /**
  * Main application entry point.
