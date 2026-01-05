@@ -1,11 +1,11 @@
-import { gemini } from "../ai/provider.js";
+import { aiModel } from "../ai/provider.js";
 import { generateText } from "ai";
 import type { IIntentHandler } from "./handler.interface.js";
 import type { PipelineContext } from "../pipeline/types.js";
 import type { DetectedIntent } from "../types/index.js";
 
 /**
- * Handles generic information requests using Gemini.
+ * Handles generic information requests using AI.
  * Responds to questions like "Who are you?", "What can you do?", etc.
  */
 export class InfoHandler implements IIntentHandler {
@@ -22,7 +22,7 @@ export class InfoHandler implements IIntentHandler {
 
     try {
       const result = await generateText({
-        model: gemini,
+        model: aiModel,
         prompt: `
 Eres "Willy Bot", un asistente personal de WhatsApp inteligente y útil.
 El usuario te ha preguntado algo sobre ti o tu funcionamiento.
@@ -44,7 +44,6 @@ Pregunta del usuario: "${ctx.message.body}"
 
 Responde a la pregunta del usuario de manera breve y útil. Si preguntan cómo usarte, da ejemplos concretos.
         `,
-        maxTokens: 20000,
       });
 
       return result.text;

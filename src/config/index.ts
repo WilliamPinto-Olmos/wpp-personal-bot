@@ -6,6 +6,9 @@ import "dotenv/config";
  */
 export const config = {
   googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? "",
+  openaiApiKey: process.env.OPENAI_API_KEY ?? "",
+  aiProvider: (process.env.AI_PROVIDER || "google") as "google" | "openai",
+  aiModel: process.env.AI_MODEL || "",
   port: parseInt(process.env.PORT ?? "3000", 10),
   nodeEnv: process.env.NODE_ENV ?? "development",
 
@@ -34,8 +37,12 @@ export const config = {
 export function validateConfig(): void {
   const errors: string[] = [];
 
-  if (!config.googleApiKey) {
-    errors.push("GOOGLE_GENERATIVE_AI_API_KEY is required");
+  if (config.aiProvider === "google" && !config.googleApiKey) {
+    errors.push("GOOGLE_GENERATIVE_AI_API_KEY is required for google provider");
+  }
+
+  if (config.aiProvider === "openai" && !config.openaiApiKey) {
+    errors.push("OPENAI_API_KEY is required for openai provider");
   }
 
   if (errors.length > 0) {

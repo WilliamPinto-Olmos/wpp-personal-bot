@@ -1,6 +1,6 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { gemini } from "./provider.js";
+import { aiModel } from "./provider.js";
 import type { ContactInfo } from "../types/index.js";
 
 const matchResultSchema = z.object({
@@ -43,7 +43,7 @@ export async function matchContact(
     .join("\n");
 
   const result = await generateObject({
-    model: gemini,
+    model: aiModel,
     schema: matchResultSchema,
     prompt: `Encuentra el contacto que mejor coincida con la búsqueda del usuario.
 

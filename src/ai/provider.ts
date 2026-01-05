@@ -1,16 +1,27 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 import { config } from "../config/index.js";
 
 /**
- * Configured Google Generative AI provider using Gemini.
- * Uses the API key from environment variables.
+ * Creates the appropriate AI model based on configuration.
  */
-const google = createGoogleGenerativeAI({
-  apiKey: config.googleApiKey,
-});
+function getModel(): any {
+  if (config.aiProvider === "openai") {
+    const openai = createOpenAI({
+      apiKey: config.openaiApiKey,
+    });
+
+    return openai(config.aiModel);
+  }
+
+  const google = createGoogleGenerativeAI({
+    apiKey: config.googleApiKey,
+  });
+  return google(config.aiModel);
+}
 
 /**
- * Gemini model instance for intent detection and text generation.
- * Uses gemini-3-flash-preview for fast, cost-effective processing.
+ * AI model instance for intent detection and text generation.
+ * This instance is configured based on the AI_PROVIDER and AI_MODEL environment variables.
  */
-export const gemini = google("gemini-3-flash-preview");
+export const aiModel = getModel() as any;

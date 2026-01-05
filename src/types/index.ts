@@ -72,9 +72,9 @@ export type FeatureType = "resumen" | "reminder" | "poll" | "info";
  * Extracted from the user's natural language request by the AI.
  */
 export interface SummaryParams {
-  contactFilter?: string;
+  contactFilter: string | null;
   messageCount: number;
-  startDate?: string;
+  startDate: string | null;
 }
 
 /**

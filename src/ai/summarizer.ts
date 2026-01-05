@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { gemini } from "./provider.js";
+import { aiModel } from "./provider.js";
 import type { ChatMessage, SummaryParams } from "../types/index.js";
 import { config } from "../config/index.js";
 
@@ -40,7 +40,7 @@ export async function generateSummary(
   }
 
   const result = await generateText({
-    model: gemini,
+    model: aiModel,
     prompt: `Genera un resumen conciso de la siguiente conversación de WhatsApp.
 
 ${contextDescription}
@@ -56,7 +56,6 @@ Instrucciones:
 - Si no hay nada relevante, dilo en una frase.
 - Tu respuesta deberá de estar en formato de mensaje de WhatsApp, por ejemplo en vez de usar "**" para negrita, debes usar "*".
 - Responde en español`,
-    maxTokens: 20000,
   });
 
   let summary = result.text.trim();

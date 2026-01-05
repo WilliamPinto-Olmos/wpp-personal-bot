@@ -1,6 +1,6 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { gemini } from "./provider.js";
+import { aiModel } from "./provider.js";
 import type { DetectedIntent, IntentType } from "../types/index.js";
 import { config } from "../config/index.js";
 
@@ -11,12 +11,12 @@ const intentSchema = z.object({
   params: z.object({
     contactFilter: z
       .string()
-      .optional()
+      .nullable()
       .describe("Name of the person to filter messages by"),
     messageCount: z.number().describe("Number of messages to process"),
     startDate: z
       .string()
-      .optional()
+      .nullable()
       .describe("Start date in YYYY-MM-DD format"),
   }),
   confidence: z
@@ -36,7 +36,7 @@ export async function detectIntent(message: string): Promise<DetectedIntent> {
   const today = new Date().toISOString().split("T")[0];
 
   const result = await generateObject({
-    model: gemini,
+    model: aiModel,
     schema: intentSchema,
     prompt: `Analiza el siguiente mensaje y determina la intención del usuario.
 
