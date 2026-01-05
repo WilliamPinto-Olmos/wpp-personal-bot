@@ -10,7 +10,6 @@ export class MaintenanceValidator implements PipelineStep {
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     if (config.bot.maintenanceMode) {
-      console.log("[MaintenanceValidator] Bot is in maintenance mode");
       return {
         ...ctx,
         shouldContinue: false,

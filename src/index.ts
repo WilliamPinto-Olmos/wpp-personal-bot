@@ -51,12 +51,6 @@ async function main(): Promise<void> {
     ? new ConsoleChannel()
     : new WhatsAppChannel(client);
 
-  console.log(
-    `[App] Using ${
-      config.bot.dryRun ? "Console (Dry Run)" : "WhatsApp"
-    } channel`
-  );
-
   const intentRegistry = new IntentRegistry();
   intentRegistry.register(new SummaryHandler(client));
   intentRegistry.register(new InfoHandler());
@@ -70,19 +64,7 @@ async function main(): Promise<void> {
     .addStep(new MessagePersistenceValidator())
     .addStep(new FeaturePermissionValidator(featuresRepository));
 
-  console.log(
-    "[App] Pipeline configured with steps:",
-    pipeline.getStepNames().join(" -> ")
-  );
-
   setupMessageListener(client, async (message: IncomingMessage) => {
-    console.log(
-      `[App] Message received from ${
-        message.sender.pushName ?? message.sender.phoneNumber
-      }`
-    );
-
-    console.log("[App] Message content:", { message });
     const context = await pipeline.process(message);
 
     if (!context.shouldContinue && !context.response) {
@@ -97,7 +79,6 @@ async function main(): Promise<void> {
 
     if (response) {
       await messageChannel.sendReply(message.chatId, response, message.id);
-      console.log("[App] Response handled by channel");
 
       if (
         context.intent &&

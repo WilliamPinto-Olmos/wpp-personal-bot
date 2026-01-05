@@ -18,10 +18,6 @@ export async function generateSummary(
     return "No hay mensajes para resumir en el período especificado.";
   }
 
-  console.log({
-    messages,
-  });
-
   const messagesText = messages
     .map((m) => {
       const senderName = m.sender.pushName ?? m.sender.phoneNumber;
