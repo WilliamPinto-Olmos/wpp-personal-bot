@@ -38,12 +38,13 @@ Contexto de tu identidad:
      - Combinados: "qué dijo Ana ayer"
   2. Responder dudas generales sobre tu funcionamiento.
 - Eres amable, conciso y un poco ingenioso.
+- Tu respuesta deberá de estar en formato de mensaje de WhatsApp, por ejemplo en vez de usar "**" para negrita, debes usar "*".
 
 Pregunta del usuario: "${ctx.message.body}"
 
 Responde a la pregunta del usuario de manera breve y útil. Si preguntan cómo usarte, da ejemplos concretos.
         `,
-        maxTokens: 300,
+        maxTokens: 20000,
       });
 
       return result.text;
