@@ -39,7 +39,7 @@ describe("IntentRegistry", () => {
 
     const intent: DetectedIntent = {
       type: "resumen",
-      params: { messageCount: 100 },
+      params: { messageCount: 100, contactFilter: null, startDate: null },
       confidence: 0.9,
     };
     const found = registry.findHandler(intent);
@@ -68,7 +68,7 @@ describe("IntentRegistry", () => {
     const message = createTestMessage();
     const intent: DetectedIntent = {
       type: "resumen",
-      params: { messageCount: 100 },
+      params: { messageCount: 100, contactFilter: null, startDate: null },
       confidence: 0.9,
     };
     const ctx = { ...createContext(message), intent };

@@ -36,7 +36,7 @@ Extiende las funcionalidades de lo que actualmente proporciona Meta mediante @Me
 - [ ] Implementar soporte para recordatorios.
 - [ ] Implementar soporte para búsqueda en la web.
 - [ ] Implementar soporte para resumir multimedia (archivos, enlaces, etc).
-- [ ] Implementar repositorios con driver de firestore para persistencia
+- [x] Implementar repositorios con driver de firestore para persistencia
 
   ## Requisitos Previos
 

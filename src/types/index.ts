@@ -104,3 +104,4 @@ export interface PipelineResult {
   success: boolean;
   errorMessage?: string;
 }
+export * from "./entity.types.js";

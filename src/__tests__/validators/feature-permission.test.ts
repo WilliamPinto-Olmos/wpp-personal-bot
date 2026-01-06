@@ -34,7 +34,7 @@ describe("FeaturePermissionValidator", () => {
     const message = createTestMessage();
     const intent: DetectedIntent = {
       type: "resumen",
-      params: { messageCount: 100 },
+      params: { messageCount: 100, contactFilter: null, startDate: null },
       confidence: 0.9,
     };
     const ctx = { ...createContext(message), intent };
@@ -52,7 +52,7 @@ describe("FeaturePermissionValidator", () => {
     const message = createTestMessage();
     const intent: DetectedIntent = {
       type: "resumen",
-      params: { messageCount: 100 },
+      params: { messageCount: 100, contactFilter: null, startDate: null },
       confidence: 0.9,
     };
     const ctx = { ...createContext(message), intent };
