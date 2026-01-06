@@ -3,30 +3,33 @@ import { FirestoreMessageRepository } from "../../../repositories/firestore/mess
 import type { ProcessedMessage } from "../../../types/index.js";
 import { Timestamp } from "firebase-admin/firestore";
 
-const { mockDoc, mockCollection, mockSet, mockGet, mockWhere, mockOrderBy, mockLimit } = vi.hoisted(() => {
+const { mockDb, mockGet, mockSet, mockWhere, mockOrderBy, mockLimit, mockChain } = vi.hoisted(() => {
   const mockGet = vi.fn();
   const mockSet = vi.fn();
   const mockWhere = vi.fn().mockReturnThis();
   const mockOrderBy = vi.fn().mockReturnThis();
   const mockLimit = vi.fn().mockReturnThis();
-  const mockDoc = vi.fn().mockReturnValue({
-    set: mockSet,
-    get: mockGet,
-  });
-  const mockCollection = vi.fn().mockReturnValue({
-    doc: mockDoc,
+  
+  const mockChain = {
+    doc: vi.fn().mockReturnThis(),
+    collection: vi.fn().mockReturnThis(),
     where: mockWhere,
     orderBy: mockOrderBy,
     limit: mockLimit,
     get: mockGet,
-  });
-  return { mockDoc, mockCollection, mockSet, mockGet, mockWhere, mockOrderBy, mockLimit };
+    set: mockSet,
+  };
+
+  const mockDb = {
+    collection: vi.fn().mockReturnValue(mockChain),
+    collectionGroup: vi.fn().mockReturnValue(mockChain),
+  };
+
+  return { mockDb, mockGet, mockSet, mockWhere, mockOrderBy, mockLimit, mockChain };
 });
 
 vi.mock("../../../config/firebase.js", () => ({
-  db: {
-    collection: mockCollection,
-  },
+  db: mockDb,
 }));
 
 describe("FirestoreMessageRepository", () => {
@@ -48,28 +51,36 @@ describe("FirestoreMessageRepository", () => {
     processedAt: new Date(),
   };
 
-  it("should save message to Firestore", async () => {
+  it("should save message to Firestore in nested subcollection", async () => {
     await repo.save(testMessage);
 
-    expect(mockCollection).toHaveBeenCalledWith("messages");
-    expect(mockDoc).toHaveBeenCalledWith("msg-1");
+    expect(mockDb.collection).toHaveBeenCalledWith("chats");
+    expect(mockChain.doc).toHaveBeenCalledWith("group-1");
+    expect(mockChain.collection).toHaveBeenCalledWith("messages");
+    expect(mockChain.doc).toHaveBeenCalledWith("msg-1");
     expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
       id: "msg-1",
       chatId: "group-1",
     }));
   });
 
-  it("should retrieve message by id", async () => {
+  it("should retrieve message by id using collectionGroup", async () => {
     mockGet.mockResolvedValueOnce({
-      exists: true,
-      data: () => ({
-        ...testMessage,
-        processedAt: Timestamp.fromDate(testMessage.processedAt),
-      }),
+      empty: false,
+      docs: [
+        {
+          data: () => ({
+            ...testMessage,
+            processedAt: Timestamp.fromDate(testMessage.processedAt),
+          }),
+        }
+      ],
     });
 
     const result = await repo.findById("msg-1");
 
+    expect(mockDb.collectionGroup).toHaveBeenCalledWith("messages");
+    expect(mockWhere).toHaveBeenCalledWith("id", "==", "msg-1");
     expect(result).toMatchObject({
       id: "msg-1",
       chatId: "group-1",
@@ -79,14 +90,14 @@ describe("FirestoreMessageRepository", () => {
 
   it("should return null for non-existent message", async () => {
     mockGet.mockResolvedValueOnce({
-      exists: false,
+      empty: true,
     });
 
     const result = await repo.findById("non-existent");
     expect(result).toBeNull();
   });
 
-  it("should find messages by groupId with limit and ordering", async () => {
+  it("should find messages by groupId in chat subcollection", async () => {
     mockGet.mockResolvedValueOnce({
       docs: [
         {
@@ -100,7 +111,9 @@ describe("FirestoreMessageRepository", () => {
 
     const results = await repo.findByGroupId("group-1", 10);
 
-    expect(mockWhere).toHaveBeenCalledWith("chatId", "==", "group-1");
+    expect(mockDb.collection).toHaveBeenCalledWith("chats");
+    expect(mockChain.doc).toHaveBeenCalledWith("group-1");
+    expect(mockChain.collection).toHaveBeenCalledWith("messages");
     expect(mockOrderBy).toHaveBeenCalledWith("processedAt", "desc");
     expect(mockLimit).toHaveBeenCalledWith(10);
     expect(results).toHaveLength(1);
