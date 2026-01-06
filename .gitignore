@@ -5,3 +5,5 @@ tokens/
 *.log
 .DS_Store
 coverage/
+
+src/config/firebase.json

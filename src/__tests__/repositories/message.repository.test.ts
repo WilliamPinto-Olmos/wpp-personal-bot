@@ -5,7 +5,7 @@ import type { ProcessedMessage, DetectedIntent } from "../../types/index.js";
 function createTestMessage(id: string, chatId: string): ProcessedMessage {
   const intent: DetectedIntent = {
     type: "resumen",
-    params: { messageCount: 100 },
+    params: { messageCount: 100, contactFilter: null, startDate: null },
     confidence: 0.9,
   };
   return {

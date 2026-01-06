@@ -28,6 +28,10 @@ export const config = {
     logQR: true,
     autoClose: 0,
   },
+
+  database: {
+    driver: (process.env.DATABASE_DRIVER || "memory") as "memory" | "firestore",
+  },
 } as const;
 
 /**
