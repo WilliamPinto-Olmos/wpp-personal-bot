@@ -1,4 +1,4 @@
-import type { ProcessedMessage, GroupFeatures } from "../types/index.js";
+import type { ProcessedMessage, GroupFeatures, ContactMemory } from "../types/index.js";
 
 /**
  * Repository interface for storing and retrieving processed messages.
@@ -52,4 +52,36 @@ export interface IGroupFeaturesRepository {
    * @returns True if the feature is enabled, false otherwise
    */
   isFeatureEnabled(groupId: string, feature: string): Promise<boolean>;
+}
+
+/**
+ * Repository interface for managing contact-specific memory.
+ * Stores preferences and context requested by users.
+ */
+export interface IContactMemoryRepository {
+  /**
+   * Retrieves the memory for a specific contact.
+   * @param contactId - The WhatsApp contact ID
+   * @returns The contact memory or null if not found
+   */
+  getMemory(contactId: string): Promise<ContactMemory | null>;
+
+  /**
+   * Stores or updates a general preference for a contact.
+   * @param contactId - The WhatsApp contact ID
+   * @param preference - The preference text to save
+   */
+  upsertGeneralPreference(contactId: string, preference: string): Promise<void>;
+
+  /**
+   * Stores or updates a preference for a specific feature.
+   * @param contactId - The WhatsApp contact ID
+   * @param feature - The feature identifier
+   * @param preference - The preference text to save
+   */
+  upsertFeaturePreference(
+    contactId: string,
+    feature: string,
+    preference: string
+  ): Promise<void>;
 }

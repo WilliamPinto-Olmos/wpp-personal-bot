@@ -114,4 +114,18 @@ describe("IntentRegistry", () => {
     expect(intents).toContain("resumen");
     expect(intents).toContain("poll");
   });
+
+  it("should return all registered handlers", () => {
+    const registry = new IntentRegistry();
+    const h1 = createMockHandler("resumen", "R1");
+    const h2 = createMockHandler("poll", "R2");
+    registry.register(h1);
+    registry.register(h2);
+
+    const handlers = registry.getHandlers();
+
+    expect(handlers).toHaveLength(2);
+    expect(handlers).toContain(h1);
+    expect(handlers).toContain(h2);
+  });
 });

@@ -61,7 +61,7 @@ describe("MessageHandler", () => {
 
     await handler.handle(mockMessage);
 
-    expect(intentProcessor.process).toHaveBeenCalledWith(context);
+    expect(intentProcessor.process).toHaveBeenCalledWith(context, undefined);
     expect(channel.sendReply).toHaveBeenCalledWith("group123", "info response", "123");
   });
 

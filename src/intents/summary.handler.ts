@@ -4,6 +4,7 @@ import type {
   DetectedIntent,
   SummaryParams,
   ChatMessage,
+  ContactMemory,
 } from "../types/index.js";
 import type { Whatsapp } from "../whatsapp/client.js";
 import {
@@ -20,8 +21,13 @@ import { config } from "../config/index.js";
  */
 export class SummaryHandler implements IIntentHandler {
   readonly intentType = "resumen";
+  private contactMemory?: ContactMemory;
 
   constructor(private readonly client: Whatsapp) {}
+
+  setContactMemory(memory: ContactMemory): void {
+    this.contactMemory = memory;
+  }
 
   canHandle(intent: DetectedIntent): boolean {
     return intent.type === "resumen";
@@ -56,7 +62,12 @@ export class SummaryHandler implements IIntentHandler {
       messages = this.filterByDate(messages, params.startDate);
     }
 
-    return generateSummary(messages, params);
+    const preferences = [
+      ...(this.contactMemory?.generalPreferences || []),
+      ...(this.contactMemory?.featurePreferences["resumen"] || []),
+    ];
+
+    return generateSummary(messages, params, preferences);
   }
 
   /**

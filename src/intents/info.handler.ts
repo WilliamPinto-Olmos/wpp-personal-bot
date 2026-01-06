@@ -2,7 +2,7 @@ import { aiModel } from "../ai/provider.js";
 import { generateText } from "ai";
 import type { IIntentHandler } from "./handler.interface.js";
 import type { PipelineContext } from "../pipeline/types.js";
-import type { DetectedIntent } from "../types/index.js";
+import type { DetectedIntent, ContactMemory } from "../types/index.js";
 
 /**
  * Handles generic information requests using AI.
@@ -10,6 +10,11 @@ import type { DetectedIntent } from "../types/index.js";
  */
 export class InfoHandler implements IIntentHandler {
   readonly intentType = "info";
+  private contactMemory?: ContactMemory;
+
+  setContactMemory(memory: ContactMemory): void {
+    this.contactMemory = memory;
+  }
 
   canHandle(intent: DetectedIntent): boolean {
     return intent.type === this.intentType;
@@ -41,6 +46,14 @@ Contexto de tu identidad:
 - Tu respuesta deberá de estar en formato de mensaje de WhatsApp, por ejemplo en vez de usar "**" para negrita, debes usar "*".
 
 Pregunta del usuario: "${ctx.message.body}"
+
+${
+  this.contactMemory?.generalPreferences &&
+  this.contactMemory.generalPreferences.length > 0
+    ? `Preferencias del usuario a tener en cuenta:
+${this.contactMemory.generalPreferences.map((p) => `- ${p}`).join("\n")}`
+    : ""
+}
 
 Responde a la pregunta del usuario de manera breve y útil. Si preguntan cómo usarte, da ejemplos concretos.
         `,

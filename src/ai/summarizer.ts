@@ -5,14 +5,16 @@ import { config } from "../config/index.js";
 
 /**
  * Generates a summary of chat messages using AI.
- * Respects the maximum output character limit.
+ * Respects the maximum output character limit and user preferences.
  * @param messages - Array of chat messages to summarize
  * @param params - Summary parameters including filters
+ * @param preferences - Optional list of user preferences to respect (e.g., "be brief", "call me Alan")
  * @returns Generated summary text
  */
 export async function generateSummary(
   messages: ChatMessage[],
-  params: SummaryParams
+  params: SummaryParams,
+  preferences: string[] = []
 ): Promise<string> {
   if (messages.length === 0) {
     return "No hay mensajes para resumir en el período especificado.";
@@ -39,6 +41,10 @@ export async function generateSummary(
     contextDescription += ` desde ${params.startDate}`;
   }
 
+  console.log({
+    preferences
+  })
+
   const result = await generateText({
     model: aiModel,
     prompt: `Genera un resumen conciso de la siguiente conversación de WhatsApp.
@@ -55,7 +61,14 @@ Instrucciones:
 - Usa bullets cortos si hay múltiples puntos.
 - Si no hay nada relevante, dilo en una frase.
 - Tu respuesta deberá de estar en formato de mensaje de WhatsApp, por ejemplo en vez de usar "**" para negrita, debes usar "*".
-- Responde en español`,
+- Responde en español
+${
+  preferences.length > 0
+    ? `- Respeta las siguientes preferencias del usuario: ${preferences.join(
+        ", "
+      )}`
+    : ""
+}`,
   });
 
   let summary = result.text.trim();

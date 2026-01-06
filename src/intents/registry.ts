@@ -54,6 +54,16 @@ export class IntentRegistry {
   /**
    * Returns the list of registered intent types.
    */
+  /**
+   * Returns all registered handlers.
+   */
+  getHandlers(): IIntentHandler[] {
+    return Array.from(this.handlers.values());
+  }
+
+  /**
+   * Returns the list of registered intent types.
+   */
   getRegisteredIntents(): string[] {
     return Array.from(this.handlers.keys());
   }

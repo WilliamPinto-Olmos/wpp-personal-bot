@@ -26,6 +26,7 @@ import type { Express } from "express";
 import { ChannelFactory } from "./channel.factory.js";
 import { IntentProcessor } from "./intent.processor.js";
 import { MessageHandler } from "./message.handler.js";
+import { MemoryUpdateProcessor } from "./memory-update.processor.js";
 
 /**
  * Main application orchestrator.
@@ -62,14 +63,20 @@ export class Application {
 
     const pipeline = this.buildPipeline();
 
+    const memoryProcessor = new MemoryUpdateProcessor(
+      this.dbDriver.contactMemories
+    );
+
     const handler = new MessageHandler(
       pipeline,
       intentProcessor,
       messageChannel,
-      this.dbDriver.messages
+      this.dbDriver.messages,
+      memoryProcessor,
+      this.dbDriver.contactMemories
     );
 
-    setupMessageListener(this.client, (message: IncomingMessage) => 
+    setupMessageListener(this.client, (message: IncomingMessage) =>
       handler.handle(message)
     );
 

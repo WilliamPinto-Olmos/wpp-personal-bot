@@ -1,4 +1,8 @@
-import type { IMessageRepository, IGroupFeaturesRepository } from "./interfaces.js";
+import type {
+  IMessageRepository,
+  IGroupFeaturesRepository,
+  IContactMemoryRepository,
+} from "./interfaces.js";
 
 /**
  * Database driver abstraction.
@@ -13,6 +17,9 @@ export interface IDatabaseDriver {
 
   /** Repository for group feature configurations */
   readonly groupFeatures: IGroupFeaturesRepository;
+
+  /** Repository for contact-specific memory (optional add-on) */
+  readonly contactMemories?: IContactMemoryRepository;
 
   /**
    * Initializes the database connection and prepares repositories.

@@ -1,5 +1,5 @@
 import type { PipelineContext } from "../pipeline/types.js";
-import type { DetectedIntent } from "../types/index.js";
+import type { DetectedIntent, ContactMemory } from "../types/index.js";
 
 /**
  * Interface for intent handlers.
@@ -21,4 +21,10 @@ export interface IIntentHandler {
    * @returns The generated response text
    */
   handle(ctx: PipelineContext): Promise<string>;
+
+  /**
+   * Injects contact memory into the handler before processing.
+   * @param memory - The stored preferences for the contact
+   */
+  setContactMemory?(memory: ContactMemory): void;
 }

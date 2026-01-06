@@ -104,4 +104,30 @@ export interface PipelineResult {
   success: boolean;
   errorMessage?: string;
 }
+
+/**
+ * Represents personal preferences and context for a contact.
+ * Allows the bot to remember specific information or instructions from users.
+ */
+export interface ContactMemory {
+  /** Unique WhatsApp contact ID */
+  contactId: string;
+  /** General instructions like nicknames or identity (e.g., ["Me llamo Alan"]) */
+  generalPreferences: string[];
+  /** Feature-specific instructions (e.g., { resumen: ["Más detallado"] }) */
+  featurePreferences: Record<string, string[]>;
+  /** Last time the memory was updated */
+  updatedAt: Date;
+}
+
+/**
+ * Data structure for storing contact memory in Firestore.
+ */
+export interface ContactMemoryDocument extends ContactMemory {
+  /** Document ID in Firestore */
+  id: string;
+  /** Creation timestamp */
+  createdAt: Date;
+}
+
 export * from "./entity.types.js";
