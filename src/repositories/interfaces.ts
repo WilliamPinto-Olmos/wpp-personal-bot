@@ -56,32 +56,21 @@ export interface IGroupFeaturesRepository {
 
 /**
  * Repository interface for managing contact-specific memory.
- * Stores preferences and context requested by users.
+ * Stores preferences and context requested by users, organized by chat.
  */
 export interface IContactMemoryRepository {
   /**
-   * Retrieves the memory for a specific contact.
+   * Retrieves memory for a specific contact within a chat.
+   * @param chatId - The WhatsApp chat ID
    * @param contactId - The WhatsApp contact ID
    * @returns The contact memory or null if not found
    */
-  getMemory(contactId: string): Promise<ContactMemory | null>;
+  getMemory(chatId: string, contactId: string): Promise<ContactMemory | null>;
 
   /**
-   * Stores or updates a general preference for a contact.
-   * @param contactId - The WhatsApp contact ID
-   * @param preference - The preference text to save
+   * Saves or updates memory for a specific contact within a chat.
+   * @param chatId - The WhatsApp chat ID
+   * @param memory - The memory object to save
    */
-  upsertGeneralPreference(contactId: string, preference: string): Promise<void>;
-
-  /**
-   * Stores or updates a preference for a specific feature.
-   * @param contactId - The WhatsApp contact ID
-   * @param feature - The feature identifier
-   * @param preference - The preference text to save
-   */
-  upsertFeaturePreference(
-    contactId: string,
-    feature: string,
-    preference: string
-  ): Promise<void>;
+  saveMemory(chatId: string, memory: ContactMemory): Promise<void>;
 }

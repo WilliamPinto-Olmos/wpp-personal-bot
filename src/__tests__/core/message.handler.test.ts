@@ -1,25 +1,47 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MessageHandler } from "../../core/message.handler.js";
 import { MessagePipeline } from "../../pipeline/index.js";
-import { IntentProcessor } from "../../core/intent.processor.js";
 import { IMessageChannel } from "../../channels/index.js";
-import { IMessageRepository } from "../../repositories/index.js";
+import { 
+  IMessageRepository, 
+  IContactMemoryRepository, 
+  IGroupFeaturesRepository 
+} from "../../repositories/index.js";
 import { IncomingMessage } from "../../types/index.js";
 import { PipelineContext } from "../../pipeline/types.js";
+import { MainAgent } from "../../agent/main.agent.js";
+import type { Whatsapp } from "../../whatsapp/index.js";
 
 describe("MessageHandler", () => {
   let pipeline: MessagePipeline;
-  let intentProcessor: IntentProcessor;
+  let agent: MainAgent;
+  let agentFactory: any;
   let channel: IMessageChannel;
-  let repository: IMessageRepository;
+  let messageRepo: IMessageRepository;
+  let contactMemoryRepo: IContactMemoryRepository;
+  let groupFeaturesRepo: IGroupFeaturesRepository;
+  let whatsappClient: Whatsapp;
   let handler: MessageHandler;
 
   beforeEach(() => {
     pipeline = { process: vi.fn() } as any;
-    intentProcessor = { process: vi.fn() } as any;
+    agent = { process: vi.fn() } as any;
+    agentFactory = vi.fn().mockReturnValue(agent);
     channel = { sendReply: vi.fn() } as any;
-    repository = { save: vi.fn() } as any;
-    handler = new MessageHandler(pipeline, intentProcessor, channel, repository);
+    messageRepo = { save: vi.fn() } as any;
+    contactMemoryRepo = { getMemory: vi.fn() } as any;
+    groupFeaturesRepo = { getFeatures: vi.fn() } as any;
+    whatsappClient = {} as any;
+
+    handler = new MessageHandler(
+      pipeline,
+      agentFactory,
+      channel,
+      messageRepo,
+      contactMemoryRepo,
+      groupFeaturesRepo,
+      whatsappClient
+    );
   });
 
   const mockMessage: IncomingMessage = {
@@ -32,10 +54,13 @@ describe("MessageHandler", () => {
   };
 
   it("should stop if pipeline says so and has no response", async () => {
-    vi.mocked(pipeline.process).mockResolvedValue({ shouldContinue: false } as PipelineContext);
+    vi.mocked(pipeline.process).mockResolvedValue({ 
+      shouldContinue: false 
+    } as PipelineContext);
     
     await handler.handle(mockMessage);
 
+    expect(agentFactory).not.toHaveBeenCalled();
     expect(channel.sendReply).not.toHaveBeenCalled();
   });
 
@@ -48,40 +73,44 @@ describe("MessageHandler", () => {
     await handler.handle(mockMessage);
 
     expect(channel.sendReply).toHaveBeenCalledWith("group123", "blocked", "123");
+    expect(agentFactory).not.toHaveBeenCalled();
   });
 
-  it("should use intent processor if pipeline has no response but has intent", async () => {
-    const context = { 
+  it("should load memory and call agent if pipeline continues", async () => {
+    const pipelineContext: PipelineContext = { 
       shouldContinue: true, 
-      intent: { type: "info" } 
-    } as PipelineContext;
+      cleanedBody: "clean hello" 
+    } as any;
+    const mockMemory = { contactId: "user123", generalPreferences: ["P1"] } as any;
     
-    vi.mocked(pipeline.process).mockResolvedValue(context);
-    vi.mocked(intentProcessor.process).mockResolvedValue("info response");
+    vi.mocked(pipeline.process).mockResolvedValue(pipelineContext);
+    vi.mocked(contactMemoryRepo.getMemory).mockResolvedValue(mockMemory);
+    vi.mocked(agent.process).mockResolvedValue("agent response");
 
     await handler.handle(mockMessage);
 
-    expect(intentProcessor.process).toHaveBeenCalledWith(context, undefined);
-    expect(channel.sendReply).toHaveBeenCalledWith("group123", "info response", "123");
+    expect(contactMemoryRepo.getMemory).toHaveBeenCalledWith("group123", "user123");
+    expect(agentFactory).toHaveBeenCalledWith(expect.objectContaining({
+      chatId: "group123",
+      contactMemory: mockMemory
+    }));
+    expect(agent.process).toHaveBeenCalledWith("clean hello");
+    expect(channel.sendReply).toHaveBeenCalledWith("group123", "agent response", "123");
   });
 
-  it("should save message to repository if conditions are met", async () => {
-    const context = { 
+  it("should save message to repository with unknown intent", async () => {
+    vi.mocked(pipeline.process).mockResolvedValue({ 
       shouldContinue: true, 
-      intent: { type: "info" },
-      shouldSaveResponse: true,
-      cleanedBody: "hello"
-    } as PipelineContext;
-    
-    vi.mocked(pipeline.process).mockResolvedValue(context);
-    vi.mocked(intentProcessor.process).mockResolvedValue("info response");
+      shouldSaveResponse: true 
+    } as any);
+    vi.mocked(agent.process).mockResolvedValue("agent response");
 
     await handler.handle(mockMessage);
 
-    expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({
+    expect(messageRepo.save).toHaveBeenCalledWith(expect.objectContaining({
       id: "123",
-      response: "info response",
-      intent: context.intent
+      response: "agent response",
+      intent: expect.objectContaining({ type: "unknown" })
     }));
   });
 });

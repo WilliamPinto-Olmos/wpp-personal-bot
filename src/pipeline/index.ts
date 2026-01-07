@@ -4,7 +4,6 @@ export {
   type PipelineContext,
   type PipelineStep,
 } from "./types.js";
-export { IntentExtractor } from "./intent-extractor.js";
 export {
   TriggerValidator,
   GroupValidator,

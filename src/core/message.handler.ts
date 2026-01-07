@@ -1,88 +1,83 @@
 import { MessagePipeline } from "../pipeline/index.js";
-import { IntentProcessor } from "./intent.processor.js";
 import { IMessageChannel } from "../channels/index.js";
 import {
   type IMessageRepository,
   type IContactMemoryRepository,
+  type IGroupFeaturesRepository,
 } from "../repositories/index.js";
 import type {
   IncomingMessage,
   ProcessedMessage,
   ContactMemory,
+  IntentType,
 } from "../types/index.js";
-import { MemoryUpdateProcessor } from "./memory-update.processor.js";
+import { MainAgent } from "../agent/main.agent.js";
+import type { AgentContext } from "../agent/types.js";
+import type { Whatsapp } from "../whatsapp/index.js";
 
 /**
- * Handles incoming messages by coordinating the pipeline and intent processing.
+ * Handles incoming messages by coordinating the pipeline and the main agent.
+ * Orchestrates validation, agent processing, and response delivery.
  */
 export class MessageHandler {
   constructor(
     private pipeline: MessagePipeline,
-    private intentProcessor: IntentProcessor,
+    private agentFactory: (context: AgentContext) => MainAgent,
     private channel: IMessageChannel,
     private messageRepository: IMessageRepository,
-    private memoryProcessor?: MemoryUpdateProcessor,
-    private contactMemoryRepo?: IContactMemoryRepository
+    private contactMemoryRepo: IContactMemoryRepository,
+    private groupFeaturesRepo: IGroupFeaturesRepository,
+    private whatsappClient: Whatsapp
   ) {}
 
   /**
    * Processes a single incoming message.
-   * Orchestrates memory updates, pipeline validation, and intent handling.
+   * Loads context, runs the pipeline, and delegates to the MainAgent.
    * @param message The raw incoming message from WhatsApp.
    */
   async handle(message: IncomingMessage): Promise<void> {
-    let memoryConfirmation: string | null = null;
-    if (this.memoryProcessor) {
-      memoryConfirmation = await this.memoryProcessor.process(
-        message.sender.id,
-        message.body
-      );
-    }
+    const pipelineContext = await this.pipeline.process(message);
 
-    let contactMemory: ContactMemory | undefined;
-    if (this.contactMemoryRepo) {
-      contactMemory =
-        (await this.contactMemoryRepo.getMemory(message.sender.id)) ||
-        undefined;
-    }
-
-    const context = await this.pipeline.process(message);
-
-    if (
-      !context.shouldContinue &&
-      !context.response &&
-      !memoryConfirmation
-    ) {
+    if (!pipelineContext.shouldContinue && !pipelineContext.response) {
       return;
     }
 
-    let response = context.response;
+    const contactMemory = await this.contactMemoryRepo.getMemory(
+      message.chatId,
+      message.sender.id
+    );
 
-    if (!response && context.intent) {
-      response = await this.intentProcessor.process(context, contactMemory);
-    }
+    const agentContext: AgentContext = {
+      chatId: message.chatId,
+      contactId: message.sender.id,
+      whatsappClient: this.whatsappClient,
+      contactMemoryRepo: this.contactMemoryRepo,
+      groupFeaturesRepo: this.groupFeaturesRepo,
+      messageRepo: this.messageRepository,
+      contactMemory: contactMemory || undefined,
+    };
 
-    if (memoryConfirmation) {
-      response = response
-        ? `${memoryConfirmation}\n\n${response}`
-        : memoryConfirmation;
+    let response = pipelineContext.response;
+    if (!response) {
+      const agent = this.agentFactory(agentContext);
+      response = await agent.process(pipelineContext.cleanedBody || message.body);
     }
 
     if (response) {
       await this.channel.sendReply(message.chatId, response, message.id);
 
-      if (
-        context.intent &&
-        context.intent.type !== "unknown" &&
-        context.shouldSaveResponse
-      ) {
+      if (pipelineContext.shouldSaveResponse) {
         const processedMessage: ProcessedMessage = {
           id: message.id,
           chatId: message.chatId,
           sender: message.sender,
           originalBody: message.body,
-          cleanedBody: context.cleanedBody ?? "",
-          intent: context.intent,
+          cleanedBody: pipelineContext.cleanedBody ?? message.body,
+          intent: {
+            type: "unknown" as IntentType,
+            params: {},
+            confidence: 0,
+          },
           response,
           processedAt: new Date(),
         };

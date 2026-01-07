@@ -11,22 +11,17 @@ import {
   CharacterLimitValidator,
   FeaturePermissionValidator,
   MaintenanceValidator,
-  IntentExtractor,
 } from "../pipeline/index.js";
 import { createDriver } from "../repositories/index.js";
-import {
-  SummaryHandler,
-  InfoHandler,
-} from "../intents/index.js";
 import { createServer, startServer } from "../server/index.js";
 import type { IncomingMessage } from "../types/index.js";
 import { MessagePersistenceValidator } from "../pipeline/validators/message-persistence.validator.js";
 import type { IDatabaseDriver } from "../repositories/driver.interface.js";
 import type { Express } from "express";
 import { ChannelFactory } from "./channel.factory.js";
-import { IntentProcessor } from "./intent.processor.js";
 import { MessageHandler } from "./message.handler.js";
-import { MemoryUpdateProcessor } from "./memory-update.processor.js";
+import { MainAgent } from "../agent/main.agent.js";
+import type { AgentContext } from "../agent/types.js";
 
 /**
  * Main application orchestrator.
@@ -56,31 +51,25 @@ export class Application {
 
     const messageChannel = ChannelFactory.create(this.client, config.bot.dryRun);
 
-    const intentProcessor = new IntentProcessor([
-      new SummaryHandler(this.client),
-      new InfoHandler(),
-    ]);
-
     const pipeline = this.buildPipeline();
 
-    const memoryProcessor = new MemoryUpdateProcessor(
-      this.dbDriver.contactMemories
-    );
+    const agentFactory = (context: AgentContext) => new MainAgent(context);
 
     const handler = new MessageHandler(
       pipeline,
-      intentProcessor,
+      agentFactory,
       messageChannel,
       this.dbDriver.messages,
-      memoryProcessor,
-      this.dbDriver.contactMemories
+      this.dbDriver.contactMemories,
+      this.dbDriver.groupFeatures,
+      this.client
     );
 
     setupMessageListener(this.client, (message: IncomingMessage) =>
       handler.handle(message)
     );
 
-    console.log("[Application] Bot logic initialized");
+    console.log("[Application] Bot logic initialized with Agent architecture");
   }
 
   /**
@@ -92,9 +81,7 @@ export class Application {
       .addStep(new MaintenanceValidator())
       .addStep(new GroupValidator())
       .addStep(new CharacterLimitValidator())
-      .addStep(new IntentExtractor())
-      .addStep(new MessagePersistenceValidator())
-      .addStep(new FeaturePermissionValidator(this.dbDriver.groupFeatures));
+      .addStep(new MessagePersistenceValidator());
   }
 
   /**

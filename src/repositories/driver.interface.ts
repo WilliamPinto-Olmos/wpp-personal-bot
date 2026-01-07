@@ -18,8 +18,8 @@ export interface IDatabaseDriver {
   /** Repository for group feature configurations */
   readonly groupFeatures: IGroupFeaturesRepository;
 
-  /** Repository for contact-specific memory (optional add-on) */
-  readonly contactMemories?: IContactMemoryRepository;
+  /** Repository for contact-specific memory */
+  readonly contactMemories: IContactMemoryRepository;
 
   /**
    * Initializes the database connection and prepares repositories.

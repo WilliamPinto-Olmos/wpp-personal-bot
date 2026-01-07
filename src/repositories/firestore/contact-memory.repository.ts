@@ -5,24 +5,31 @@ import type { CollectionReference } from "firebase-admin/firestore";
 
 /**
  * Firestore implementation of the contact memory repository.
- * Persists user preferences to the 'contact_memories' collection.
+ * Persists user preferences to a subcollection within each chat.
  */
 export class FirestoreContactMemoryRepository implements IContactMemoryRepository {
-  private readonly collection = db.collection(
-    "contact_memories"
-  ) as CollectionReference<ContactMemoryDocument>;
+  /**
+   * Gets the collection reference for contacts within a chat.
+   */
+  private getContactCollection(chatId: string) {
+    return db
+      .collection("chats")
+      .doc(chatId)
+      .collection("contacts") as CollectionReference<ContactMemoryDocument>;
+  }
 
   /**
-   * Retrieves contact memory from Firestore.
-   * @param contactId Unique WhatsApp IDs for the contact.
+   * Retrieves contact memory from Firestore for a specific chat.
+   * @param chatId Chat identifier.
+   * @param contactId Contact identifier.
    */
-  async getMemory(contactId: string): Promise<ContactMemory | null> {
-    const doc = await this.collection.doc(contactId).get();
+  async getMemory(chatId: string, contactId: string): Promise<ContactMemory | null> {
+    const doc = await this.getContactCollection(chatId).doc(contactId).get();
 
     if (!doc.exists) {
       return null;
     }
-    
+
     const data = doc.data();
     return data
       ? {
@@ -35,66 +42,19 @@ export class FirestoreContactMemoryRepository implements IContactMemoryRepositor
   }
 
   /**
-   * Saves a general preference. If the contact doesn't exist, creates a new record.
-   * @param contactId Unique WhatsApp IDs for the contact.
-   * @param preference Preference text.
+   * Saves or updates contact memory in Firestore for a specific chat.
+   * @param chatId Chat identifier.
+   * @param memory The memory object to save.
    */
-  async upsertGeneralPreference(contactId: string, preference: string): Promise<void> {
-    const memory = await this.getMemory(contactId);
-    const docRef = this.collection.doc(contactId);
+  async saveMemory(chatId: string, memory: ContactMemory): Promise<void> {
+    const docRef = this.getContactCollection(chatId).doc(memory.contactId);
 
-    if (!memory) {
-      const newDoc: ContactMemoryDocument = {
-        id: contactId,
-        contactId,
-        generalPreferences: [preference],
-        featurePreferences: {},
-        updatedAt: new Date(),
-        createdAt: new Date(),
-      };
-      await docRef.set(newDoc);
-    } else {
-      if (!memory.generalPreferences.includes(preference)) {
-        await docRef.update({
-          generalPreferences: [...memory.generalPreferences, preference],
-          updatedAt: new Date(),
-        } as any);
-      }
-    }
-  }
+    const document: ContactMemoryDocument = {
+      ...memory,
+      id: memory.contactId,
+      updatedAt: new Date(),
+    } as any;
 
-  /**
-   * Saves a feature-specific preference.
-   * @param contactId Unique WhatsApp IDs for the contact.
-   * @param feature Feature identifier.
-   * @param preference Preference text.
-   */
-  async upsertFeaturePreference(
-    contactId: string,
-    feature: string,
-    preference: string
-  ): Promise<void> {
-    const memory = await this.getMemory(contactId);
-    const docRef = this.collection.doc(contactId);
-
-    if (!memory) {
-      const newDoc: ContactMemoryDocument = {
-        id: contactId,
-        contactId,
-        generalPreferences: [],
-        featurePreferences: { [feature]: [preference] },
-        updatedAt: new Date(),
-        createdAt: new Date(),
-      };
-      await docRef.set(newDoc);
-    } else {
-      const currentFeaturePrefs = memory.featurePreferences[feature] || [];
-      if (!currentFeaturePrefs.includes(preference)) {
-        await docRef.update({
-          [`featurePreferences.${feature}`]: [...currentFeaturePrefs, preference],
-          updatedAt: new Date(),
-        } as any);
-      }
-    }
+    await docRef.set(document, { merge: true });
   }
 }

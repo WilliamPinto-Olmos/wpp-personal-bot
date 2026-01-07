@@ -8,37 +8,44 @@ describe("InMemoryContactMemoryRepository", () => {
     repo = new InMemoryContactMemoryRepository();
   });
 
-  it("should store and retrieve general preferences", async () => {
+  it("should store and retrieve contact memory per chat", async () => {
+    const chatId = "chat123";
     const contactId = "user123";
-    await repo.upsertGeneralPreference(contactId, "Llamame Alan");
+    const memory = {
+      contactId,
+      generalPreferences: ["Llamame Alan"],
+      featurePreferences: { resumen: ["breve"] },
+      updatedAt: new Date(),
+    };
+
+    await repo.saveMemory(chatId, memory);
     
-    const memory = await repo.getMemory(contactId);
-    expect(memory).not.toBeNull();
-    expect(memory?.generalPreferences).toContain("Llamame Alan");
+    const retrieved = await repo.getMemory(chatId, contactId);
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.generalPreferences).toContain("Llamame Alan");
   });
 
-  it("should store and retrieve multiple feature preferences", async () => {
+  it("should isolate memories between different chats", async () => {
+    const chat1 = "chat1";
+    const chat2 = "chat2";
     const contactId = "user123";
-    await repo.upsertFeaturePreference(contactId, "resumen", "Breve");
-    await repo.upsertFeaturePreference(contactId, "resumen", "Sin emojis");
-    await repo.upsertFeaturePreference(contactId, "info", "Formal");
+    
+    await repo.saveMemory(chat1, {
+      contactId,
+      generalPreferences: ["Pref1"],
+      featurePreferences: {},
+      updatedAt: new Date(),
+    });
 
-    const memory = await repo.getMemory(contactId);
-    expect(memory?.featurePreferences["resumen"]).toEqual(["Breve", "Sin emojis"]);
-    expect(memory?.featurePreferences["info"]).toEqual(["Formal"]);
+    const inChat2 = await repo.getMemory(chat2, contactId);
+    expect(inChat2).toBeNull();
+
+    const inChat1 = await repo.getMemory(chat1, contactId);
+    expect(inChat1?.generalPreferences).toContain("Pref1");
   });
 
-  it("should not duplicate identical preferences", async () => {
-    const contactId = "user123";
-    await repo.upsertGeneralPreference(contactId, "Pref1");
-    await repo.upsertGeneralPreference(contactId, "Pref1");
-
-    const memory = await repo.getMemory(contactId);
-    expect(memory?.generalPreferences).toHaveLength(1);
-  });
-
-  it("should return null for non-existent contacts", async () => {
-    const memory = await repo.getMemory("unknown");
+  it("should return null for non-existent contacts in a chat", async () => {
+    const memory = await repo.getMemory("chat1", "unknown");
     expect(memory).toBeNull();
   });
 });

@@ -41,10 +41,6 @@ export async function generateSummary(
     contextDescription += ` desde ${params.startDate}`;
   }
 
-  console.log({
-    preferences
-  })
-
   const result = await generateText({
     model: aiModel,
     prompt: `Genera un resumen conciso de la siguiente conversación de WhatsApp.
@@ -55,9 +51,6 @@ Mensajes:
 ${messagesText}
 
 Instrucciones:
-- SÉ EXTREMADAMENTE BREVE Y CONCISO.
-- Resume lo más importante en pocas líneas.
-- EVITA saludos, introducciones o cierres innecesarios.
 - Usa bullets cortos si hay múltiples puntos.
 - Si no hay nada relevante, dilo en una frase.
 - Tu respuesta deberá de estar en formato de mensaje de WhatsApp, por ejemplo en vez de usar "**" para negrita, debes usar "*".
