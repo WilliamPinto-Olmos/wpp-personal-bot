@@ -4,6 +4,7 @@ import {
   type IMessageRepository,
   type IContactMemoryRepository,
   type IGroupFeaturesRepository,
+  type IReminderRepository,
 } from "../repositories/index.js";
 import type {
   IncomingMessage,
@@ -12,6 +13,8 @@ import type {
   IntentType,
 } from "../types/index.js";
 import { MainAgent } from "../agent/main.agent.js";
+import { ReminderService } from "../services/reminder.service.js";
+
 import type { AgentContext } from "../agent/types.js";
 import type { Whatsapp } from "../whatsapp/index.js";
 
@@ -27,6 +30,8 @@ export class MessageHandler {
     private messageRepository: IMessageRepository,
     private contactMemoryRepo: IContactMemoryRepository,
     private groupFeaturesRepo: IGroupFeaturesRepository,
+    private remindersRepo: IReminderRepository,
+    private reminderService: ReminderService,
     private whatsappClient: Whatsapp
   ) {}
 
@@ -54,6 +59,8 @@ export class MessageHandler {
       contactMemoryRepo: this.contactMemoryRepo,
       groupFeaturesRepo: this.groupFeaturesRepo,
       messageRepo: this.messageRepository,
+      remindersRepo: this.remindersRepo,
+      reminderService: this.reminderService,
       contactMemory: contactMemory || undefined,
     };
 

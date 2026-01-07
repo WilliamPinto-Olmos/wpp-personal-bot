@@ -31,6 +31,8 @@ describe("MessageHandler", () => {
     messageRepo = { save: vi.fn() } as any;
     contactMemoryRepo = { getMemory: vi.fn() } as any;
     groupFeaturesRepo = { getFeatures: vi.fn() } as any;
+    const remindersRepo = { findByChatAndContact: vi.fn(), save: vi.fn() } as any;
+    const reminderService = { initialize: vi.fn(), createReminder: vi.fn() } as any;
     whatsappClient = {} as any;
 
     handler = new MessageHandler(
@@ -40,6 +42,8 @@ describe("MessageHandler", () => {
       messageRepo,
       contactMemoryRepo,
       groupFeaturesRepo,
+      remindersRepo,
+      reminderService,
       whatsappClient
     );
   });

@@ -22,6 +22,8 @@ import { ChannelFactory } from "./channel.factory.js";
 import { MessageHandler } from "./message.handler.js";
 import { MainAgent } from "../agent/main.agent.js";
 import type { AgentContext } from "../agent/types.js";
+import { ReminderService } from "../services/reminder.service.js";
+import { NodeCronReminderScheduler } from "../scheduler/node-cron.scheduler.js";
 
 /**
  * Main application orchestrator.
@@ -31,6 +33,7 @@ export class Application {
   private dbDriver: IDatabaseDriver;
   private server: Express;
   private client!: Whatsapp;
+  private reminderService!: ReminderService;
 
   constructor() {
     this.dbDriver = createDriver(config.database.driver);
@@ -55,6 +58,13 @@ export class Application {
 
     const agentFactory = (context: AgentContext) => new MainAgent(context);
 
+    this.reminderService = new ReminderService(
+      this.dbDriver.reminders,
+      new NodeCronReminderScheduler(),
+      this.client
+    );
+    await this.reminderService.initialize();
+
     const handler = new MessageHandler(
       pipeline,
       agentFactory,
@@ -62,6 +72,8 @@ export class Application {
       this.dbDriver.messages,
       this.dbDriver.contactMemories,
       this.dbDriver.groupFeatures,
+      this.dbDriver.reminders,
+      this.reminderService,
       this.client
     );
 

@@ -74,3 +74,5 @@ export interface IContactMemoryRepository {
    */
   saveMemory(chatId: string, memory: ContactMemory): Promise<void>;
 }
+
+export * from "./reminder.repository.interface.js";

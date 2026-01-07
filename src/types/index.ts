@@ -131,3 +131,4 @@ export interface ContactMemoryDocument extends ContactMemory {
 }
 
 export * from "./entity.types.js";
+export * from "./reminder.types.js";
