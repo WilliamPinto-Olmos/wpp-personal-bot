@@ -2,9 +2,11 @@ import type { Whatsapp } from "../whatsapp/index.js";
 import type { 
   IContactMemoryRepository, 
   IMessageRepository,
-  IGroupFeaturesRepository 
+  IGroupFeaturesRepository,
+  IReminderRepository,
 } from "../repositories/index.js";
 import type { ContactMemory } from "../types/index.js";
+import type { ReminderService } from "../services/reminder.service.js";
 
 /**
  * Context provided to the MainAgent and its tools.
@@ -23,6 +25,10 @@ export interface AgentContext {
   groupFeaturesRepo: IGroupFeaturesRepository;
   /** Repository for persistent message storage. */
   messageRepo: IMessageRepository;
+  /** Repository for reminders. */
+  remindersRepo: IReminderRepository;
+  /** Service for managing reminders lifecycle. */
+  reminderService: ReminderService;
   /** Pre-loaded memory for the contact, if any. */
   contactMemory?: ContactMemory;
 }

@@ -2,6 +2,7 @@ import type {
   IMessageRepository,
   IGroupFeaturesRepository,
   IContactMemoryRepository,
+  IReminderRepository,
 } from "./interfaces.js";
 
 /**
@@ -20,6 +21,9 @@ export interface IDatabaseDriver {
 
   /** Repository for contact-specific memory */
   readonly contactMemories: IContactMemoryRepository;
+
+  /** Repository for reminders */
+  readonly reminders: IReminderRepository;
 
   /**
    * Initializes the database connection and prepares repositories.
