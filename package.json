@@ -13,7 +13,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/google": "^3.0.5",
     "@ai-sdk/openai": "^3.0.2",
     "@wppconnect-team/wppconnect": "^1.37.8",
     "ai": "^6.0.6",
