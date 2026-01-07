@@ -4,8 +4,9 @@ import { DateTime } from "luxon";
 import * as tools from "../tools/index.js";
 import type { AgentContext } from "./types.js";
 
-// Pre-create the web content tool (it will be null if no API key is set)
-const webContentTool = tools.createWebContentTool();
+const youTubeSummaryTool = tools.createYouTubeSummaryTool();
+const webSummaryTool = tools.createWebSummaryTool();
+const googleSearchTool = tools.createGoogleSearchTool();
 
 /**
  * Main agent that orchestrates tools and generates responses.
@@ -23,7 +24,6 @@ export class MainAgent {
   async process(message: string): Promise<string> {
     const memoryPrompt = this.buildMemoryPrompt();
 
-    // Build the tools map dynamically to include the web content tool only if available
     const agentTools: Record<string, any> = {
       resumen: tools.createSummaryTool(this.context),
       actualizarMemoria: tools.createMemoryTool(this.context),
@@ -34,8 +34,19 @@ export class MainAgent {
       informacion: tools.infoTool,
     };
 
-    if (webContentTool) {
-      agentTools.resumirContenidoWeb = webContentTool;
+    /**
+     * Gemini specific tools won't be added if no API key is set
+     */
+    if (youTubeSummaryTool) {
+      agentTools.resumirYouTube = youTubeSummaryTool;
+    }
+    
+    if (webSummaryTool) {
+      agentTools.resumirWeb = webSummaryTool;
+    }
+
+    if (googleSearchTool) {
+      agentTools.buscarEnInternet = googleSearchTool;
     }
 
     const result = await generateText({
@@ -53,13 +64,16 @@ export class MainAgent {
         3. Para recordatorios:
            - "en 5 minutos" -> Suma 5 min a la hora actual (${DateTime.now().setZone("America/Mexico_City").toISO()}).
            - "a las 10pm" -> Usa las 22:00 de hoy.
-           - "mañana" -> Usa las 12:00pm (mediodía) de mañana.
+           - "mañana" -> Usa las 12:00pm (mediodée) de mañana.
            - "la próxima semana" (sin día) -> Usa el próximo lunes a las 12:00pm.
            - "el [día]" (sin hora) -> Usa ese día a las 12:00pm.
            - Siempre usa la zona horaria "America/Mexico_City" (UTC-6) para interpretar y crear recordatorios.
         4. Siempre intenta ser conciso pero útil.
         5. Responde en el mismo tono que el usuario pero manteniendo tu identidad.
-        6. Si el usuario comparte una URL de YouTube o página web y pide un resumen, usa "resumirContenidoWeb". Para YouTube darás un resumen narrativo, para otras páginas darás puntos clave. Si la herramienta no está disponible, indica amablemente que no tienes acceso a esa funcionalidad por el momento.
+        6. Para resumir videos de YouTube, usa "resumirYouTube". IMPORTANTE: Solo llama a esta herramienta si el usuario proporciona una URL de YouTube válida en su mensaje.
+        7. Para resumir páginas web, usa "resumirWeb". IMPORTANTE: Solo llama a esta herramienta si el usuario proporciona una URL de una página web válida en su mensaje.
+        8. Para buscar información actualizada en internet, usa "buscarEnInternet".
+        9. Si estas herramientas de Gemini no están disponibles, indica amablemente que no tienes acceso a esa funcionalidad por el momento.
 
         Mensaje del usuario: "${message}"
         `,

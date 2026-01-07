@@ -21,6 +21,10 @@ vi.mock("../../repositories/index.js", () => ({
     initialize: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn().mockResolvedValue(undefined),
     messages: {},
+    contactMemories: {},
+    reminders: {
+      findPending: vi.fn().mockResolvedValue([]),
+    },
     groupFeatures: {
       getFeatures: vi.fn().mockResolvedValue(null)
     }
