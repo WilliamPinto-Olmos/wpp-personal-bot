@@ -33,9 +33,10 @@ Extiende las funcionalidades de lo que actualmente proporciona Meta mediante @Me
 
 - [x] Implementar MVP para resumir conversaciones.
 - [ ] Soporte de filtrado avanzado de conversaciones, ejemplo por "esta semana" o "el mes pasado".
-- [ ] Implementar soporte para recordatorios.
-- [ ] Implementar soporte para búsqueda en la web.
-- [ ] Implementar soporte para resumir multimedia (archivos, enlaces, etc).
+- [x] Implementar soporte para recordatorios.
+- [x] Implementar soporte para búsqueda en la web.
+- [ ] Implementar soporte para resumir multimedia enviada por whatsapp
+- [x] Implementar soporte para resumir enlaces y vídeos de youtube.
 - [x] Implementar repositorios con driver de firestore para persistencia
 
   ## Requisitos Previos
