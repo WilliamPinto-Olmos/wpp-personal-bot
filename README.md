@@ -106,7 +106,7 @@ El bot solo responderá a los mensajes que comiencen con la **TRIGGER_PHRASE** c
 Para ejecutar los tests unitarios (Vitest):
 
 ```bash
-npm run test
+npm test
 ```
 
 ### Estructura del Proyecto
