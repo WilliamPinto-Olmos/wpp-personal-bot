@@ -10,3 +10,6 @@ export {
 } from "./message-listener.js";
 export { sendReply, sendText } from "./message-sender.js";
 export { fetchMessages, fetchGroupParticipants } from "./message-fetcher.js";
+export { resolveQuoteChain, toContextMessages } from "./quote-resolver.js";
+export { formatRelativeTime } from "./time-utils.js";
+
