@@ -57,7 +57,7 @@ export class Container {
     );
     await this.reminderService.initialize();
 
-    const pipeline = this.buildPipeline();
+    const pipeline = await this.buildPipeline();
     const agentFactory = (context: AgentContext) => new MainAgent(context);
     const chatServiceFactory = (chatId: string) => new WhatsappChatService(this.client, chatId);
 
@@ -77,13 +77,33 @@ export class Container {
   /**
    * Builds the message pipeline with all required steps.
    */
-  private buildPipeline(): MessagePipeline {
+  private async buildPipeline(): Promise<MessagePipeline> {
+    const botWid = await this.client.getWid();
+    const botLid = await this.getBotLid(botWid);
+
+    console.log(`[Container] Bot initialized: WID=${botWid}${botLid ? `, LID=${botLid}` : ""}`);
+
     return new MessagePipeline()
-      .addStep(new TriggerValidator())
+      .addStep(new TriggerValidator({ botWid, botLid }))
       .addStep(new MaintenanceValidator())
       .addStep(new GroupValidator())
       .addStep(new CharacterLimitValidator())
       .addStep(new MessagePersistenceValidator());
+  }
+
+  /**
+   * Fetches the bot's Linked Device ID (LID).
+   * WhatsApp internally uses LID format in mentionedJidList.
+   */
+  private async getBotLid(botWid: string): Promise<string | undefined> {
+    try {
+      const lidEntry = await this.client.getPnLidEntry(botWid);
+      const lidRaw = lidEntry?.lid as unknown as string | { _serialized: string } | undefined;
+      return typeof lidRaw === "object" ? lidRaw?._serialized : lidRaw;
+    } catch (error) {
+      console.warn("[Container] Could not get bot LID, mention detection may be limited", error);
+      return undefined;
+    }
   }
 
   /**

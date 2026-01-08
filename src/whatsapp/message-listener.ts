@@ -20,6 +20,12 @@ function normalizeMessage(msg: Message): IncomingMessage {
     phoneNumber: msg.sender?.id?.replace("@c.us", "") ?? "",
   };
 
+  // Detect if quoted message is from bot by checking quotedMsgId prefix
+  // Format: "true_chatId_messageId" or "false_chatId_messageId"
+  // "true_" means fromMe=true (bot's message)
+  const quotedMsgIdStr = msg.quotedMsgId as unknown as string | undefined;
+  const quotedMessageFromMe = quotedMsgIdStr?.startsWith("true_") ?? undefined;
+
   return {
     id: msg.id,
     chatId:
@@ -30,6 +36,8 @@ function normalizeMessage(msg: Message): IncomingMessage {
     timestamp: new Date(msg.timestamp * 1000),
     isGroup: msg.isGroupMsg ?? false,
     quotedMessageId: msg.quotedMsgId || undefined,
+    mentionedJidList: msg.mentionedJidList || undefined,
+    quotedMessageFromMe,
   };
 }
 

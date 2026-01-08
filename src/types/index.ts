@@ -27,6 +27,10 @@ export interface IncomingMessage {
   timestamp: Date;
   isGroup: boolean;
   quotedMessageId?: string;
+  /** List of user IDs mentioned in this message (format: xxxxxxxxxx@c.us) */
+  mentionedJidList?: string[];
+  /** True if the quoted message was sent by the bot */
+  quotedMessageFromMe?: boolean;
 }
 
 /**
