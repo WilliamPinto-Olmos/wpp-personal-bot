@@ -21,7 +21,7 @@ export class WhatsAppChannel implements IMessageChannel, INotificationChannel {
     await sendText(this.client, chatId, content);
   }
 
-  async send(chatId: string, content: string): Promise<void> {
-    await sendText(this.client, chatId, content);
+  async send(chatId: string, content: string, options?: { mentions?: string[] }): Promise<void> {
+    await sendText(this.client, chatId, content, options?.mentions);
   }
 }

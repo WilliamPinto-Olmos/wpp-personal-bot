@@ -29,10 +29,13 @@ export class ConsoleChannel implements IMessageChannel, INotificationChannel {
     console.log("-----------------------------------------");
   }
 
-  async send(chatId: string, content: string): Promise<void> {
+  async send(chatId: string, content: string, options?: { mentions?: string[] }): Promise<void> {
     console.log("-----------------------------------------");
     console.log("[Dry Run] WOULD SEND NOTIFICATION:");
     console.log(`[To] ${chatId}`);
+    if (options?.mentions?.length) {
+      console.log(`[Mentions] ${options.mentions.join(", ")}`);
+    }
     console.log(`[Content]\n${content}`);
     console.log("-----------------------------------------");
   }

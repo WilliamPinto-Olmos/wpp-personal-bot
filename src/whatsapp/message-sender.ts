@@ -31,14 +31,16 @@ export async function sendReply(
  * @param client - Initialized WhatsApp client
  * @param chatId - Target chat ID
  * @param message - Message content to send
+ * @param mentionedList - Optional array of contact IDs to mention
  */
 export async function sendText(
   client: Whatsapp,
   chatId: string,
-  message: string
+  message: string,
+  mentionedList?: string[]
 ): Promise<void> {
   try {
-    await client.sendText(chatId, message);
+    await client.sendText(chatId, message, { mentionedList });
   } catch (error) {
     console.error("[MessageSender] Error sending text:", error);
     throw error;

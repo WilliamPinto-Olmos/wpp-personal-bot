@@ -48,6 +48,8 @@ export class ReminderService {
       status: "pending",
     };
 
+    console.log(`[ReminderService] Creating reminder ${reminder.id} for chat ${reminder.chatId}`, { reminder });
+
     await this.repository.save(reminder);
     this.scheduleReminder(reminder);
     return reminder;
@@ -58,7 +60,12 @@ export class ReminderService {
    */
   private scheduleReminder(reminder: Reminder): void {
     const now = new Date();
-    if (reminder.triggerAt <= now) {
+    // @ts-expect-error Timestamp from Firestore comes as a Timestamp object
+    const triggerAtDate = DateTime.fromMillis(reminder.triggerAt.toMillis()).toJSDate();
+
+    reminder.triggerAt = triggerAtDate;
+    
+    if (triggerAtDate <= now) {
       // If it's in the past (e.g., missed while bot was down), trigger immediately or mark as delivered
       this.triggerReminder(reminder);
       return;
@@ -78,7 +85,7 @@ export class ReminderService {
       // We use a friendly message format
       const text = `🔔 *RECORDATORIO* 🔔\n\nHola! Me pediste que te recordara:\n"${reminder.message}"`;
       
-      await this.notificationChannel.send(reminder.chatId, text);
+      await this.notificationChannel.send(reminder.chatId, text + "\n\n" + `@${reminder.contactId.split("@")[0]}`);
 
       // Update status in repository
       await this.repository.update(reminder.id, { status: "delivered" });
