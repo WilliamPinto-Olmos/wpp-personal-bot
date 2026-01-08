@@ -39,7 +39,7 @@ Extiende las funcionalidades de lo que actualmente proporciona Meta mediante @Me
 - [x] Implementar soporte para resumir enlaces y vídeos de youtube.
 - [x] Implementar repositorios con driver de firestore para persistencia
 
-  ## Requisitos Previos
+## Requisitos Previos
 
 - [Node.js](https://nodejs.org/) (v22 o superior)
 - [npm](https://www.npmjs.com/)
