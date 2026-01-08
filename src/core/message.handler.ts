@@ -9,8 +9,8 @@ import {
 import type {
   IncomingMessage,
   ProcessedMessage,
-  ContactMemory,
   IntentType,
+  ContextMessage,
 } from "../types/index.js";
 import { MainAgent } from "../agent/main.agent.js";
 import { ReminderService } from "../services/reminder.service.js";
@@ -54,6 +54,19 @@ export class MessageHandler {
 
     const chatService = this.chatServiceFactory(message.chatId);
 
+    // Resolve quote chain if message has a quoted message
+    let quoteChain: ContextMessage[] | undefined;
+    if (message.quotedMessageId) {
+      try {
+        quoteChain = await chatService.getQuoteChain(message.quotedMessageId);
+        if (quoteChain.length > 0) {
+          console.log(`[MessageHandler] Resolved quote chain with ${quoteChain.length} messages`);
+        }
+      } catch (error) {
+        console.warn("[MessageHandler] Failed to resolve quote chain:", error);
+      }
+    }
+
     const agentContext: AgentContext = {
       chatId: message.chatId,
       contactId: message.sender.id,
@@ -64,6 +77,8 @@ export class MessageHandler {
       remindersRepo: this.remindersRepo,
       reminderService: this.reminderService,
       contactMemory: contactMemory || undefined,
+      quoteChain,
+      triggerMessageId: message.id,
     };
 
     let response = pipelineContext.response;

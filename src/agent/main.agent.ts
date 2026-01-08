@@ -3,6 +3,7 @@ import { aiModel } from "../ai/provider.js";
 import { DateTime } from "luxon";
 import * as tools from "../tools/index.js";
 import type { AgentContext } from "./types.js";
+import type { ContextMessage } from "../types/index.js";
 
 const youTubeSummaryTool = tools.createYouTubeSummaryTool();
 const webSummaryTool = tools.createWebSummaryTool();
@@ -23,6 +24,7 @@ export class MainAgent {
    */
   async process(message: string): Promise<string> {
     const memoryPrompt = this.buildMemoryPrompt();
+    const quoteChainPrompt = this.buildQuoteChainPrompt();
 
     const agentTools: Record<string, any> = {
       resumen: tools.createSummaryTool(this.context),
@@ -32,6 +34,7 @@ export class MainAgent {
       editarRecordatorio: tools.editReminderTool(this.context),
       eliminarRecordatorio: tools.deleteReminderTool(this.context),
       informacion: tools.infoTool,
+      obtenerContexto: tools.createFetchContextTool(this.context),
     };
 
     /**
@@ -57,6 +60,7 @@ export class MainAgent {
         Tu objetivo es ayudar al usuario con lo que necesite usando tus herramientas.
 
         ${memoryPrompt}
+        ${quoteChainPrompt}
 
         Instrucciones:
         1. Si el usuario te pide recordar algo o cambiar su nombre/apodo, utiliza la herramienta "actualizarMemoria".
@@ -64,7 +68,7 @@ export class MainAgent {
         3. Para recordatorios:
            - "en 5 minutos" -> Suma 5 min a la hora actual (${DateTime.now().setZone("America/Mexico_City").toISO()}).
            - "a las 10pm" -> Usa las 22:00 de hoy.
-           - "mañana" -> Usa las 12:00pm (mediodée) de mañana.
+           - "mañana" -> Usa las 12:00pm (mediodía) de mañana.
            - "la próxima semana" (sin día) -> Usa el próximo lunes a las 12:00pm.
            - "el [día]" (sin hora) -> Usa ese día a las 12:00pm.
            - Siempre usa la zona horaria "America/Mexico_City" (UTC-6) para interpretar y crear recordatorios.
@@ -74,6 +78,7 @@ export class MainAgent {
         7. Para resumir páginas web, usa "resumirWeb". IMPORTANTE: Solo llama a esta herramienta si el usuario proporciona una URL de una página web válida en su mensaje.
         8. Para buscar información actualizada en internet, usa "buscarEnInternet".
         9. Si estas herramientas de Gemini no están disponibles, indica amablemente que no tienes acceso a esa funcionalidad por el momento.
+        10. Si el usuario te pide opinar sobre algo, hacer algo basado en mensajes anteriores, o no tienes suficiente contexto para responder (ej: "tu qué opinas?", "basándote en lo anterior..."), usa "obtenerContexto" para obtener los últimos mensajes del chat.
 
         Mensaje del usuario: "${message}"
         `,
@@ -105,4 +110,24 @@ export class MainAgent {
 
     return prompt;
   }
+
+  /**
+   * Builds prompt section with quote chain context if available.
+   */
+  private buildQuoteChainPrompt(): string {
+    const quoteChain = this.context.quoteChain;
+    if (!quoteChain || quoteChain.length === 0) return "";
+
+    let prompt = "\nContexto de mensajes citados (del más antiguo al más reciente):\n";
+    
+    quoteChain.forEach((msg: ContextMessage) => {
+      const botIndicator = msg.fromBot ? " [BOT]" : "";
+      prompt += `- [${msg.sender}${botIndicator}] (${msg.time}): ${msg.body}\n`;
+    });
+
+    prompt += "\nEl mensaje actual del usuario está citando/respondiendo a este hilo de mensajes.\n Si el mensaje actual no está generando instrucciones, usa las citas como los mensajes a responder.";
+
+    return prompt;
+  }
 }
+

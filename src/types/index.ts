@@ -5,6 +5,21 @@
  */
 
 /**
+ * Minimal message format for agent context.
+ * Optimized to reduce token usage when passing many messages.
+ */
+export interface ContextMessage {
+  /** Display name of sender (pushName or phone) */
+  sender: string;
+  /** Message body */
+  body: string;
+  /** Relative timestamp (e.g., "hace 5 min") */
+  time: string;
+  /** True if this message is from the bot */
+  fromBot?: boolean;
+}
+
+/**
  * Represents contact information extracted from WhatsApp.
  * Used for identifying message senders and filtering in summaries.
  */

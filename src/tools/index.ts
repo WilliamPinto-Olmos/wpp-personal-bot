@@ -5,3 +5,5 @@ export * from "./reminder.tool.js";
 export * from "./youtube-summary.tool.js";
 export * from "./web-summary.tool.js";
 export * from "./google-search.tool.js";
+export * from "./fetch-context.tool.js";
+

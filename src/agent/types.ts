@@ -4,7 +4,7 @@ import type {
   IGroupFeaturesRepository,
   IReminderRepository,
 } from "../repositories/index.js";
-import type { ContactMemory } from "../types/index.js";
+import type { ContactMemory, ContextMessage } from "../types/index.js";
 import type { ReminderService } from "../services/reminder.service.js";
 import type { IChatService } from "../services/chat-service.interface.js";
 
@@ -31,6 +31,10 @@ export interface AgentContext {
   reminderService: ReminderService;
   /** Pre-loaded memory for the contact, if any. */
   contactMemory?: ContactMemory;
+  /** Quote chain messages if the incoming message quoted another message. */
+  quoteChain?: ContextMessage[];
+  /** The ID of the message that triggered the bot (for context fetching). */
+  triggerMessageId?: string;
 }
 
 /**
