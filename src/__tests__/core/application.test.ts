@@ -42,31 +42,37 @@ vi.mock("../../server/index.js", () => ({
 }));
 
 describe("Application", () => {
+  let container: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    container = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      client: {},
+      handler: {},
+    };
   });
 
-  it("should initialize with configured driver", async () => {
-    const app = new Application();
+  it("should initialize the container and orchestrator", async () => {
+    const app = new Application(container);
     await app.initialize();
 
-    expect(createDriver).toHaveBeenCalledWith("memory");
+    expect(container.initialize).toHaveBeenCalled();
   });
 
-  it("should start server on start()", async () => {
-    const app = new Application();
+  it("should start server and orchestrator on start()", async () => {
+    const app = new Application(container);
+    await app.initialize();
     await app.start();
 
     expect(startServer).toHaveBeenCalled();
   });
 
-  it("should stop driver on stop()", async () => {
-    const app = new Application();
-    // @ts-ignore - accessing private for test
-    const driver = app.dbDriver;
-    
+  it("should stop driver via container on stop()", async () => {
+    const app = new Application(container);
     await app.stop();
 
-    expect(driver.disconnect).toHaveBeenCalled();
+    expect(container.disconnect).toHaveBeenCalled();
   });
 });

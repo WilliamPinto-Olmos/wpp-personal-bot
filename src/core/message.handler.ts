@@ -16,7 +16,7 @@ import { MainAgent } from "../agent/main.agent.js";
 import { ReminderService } from "../services/reminder.service.js";
 
 import type { AgentContext } from "../agent/types.js";
-import type { Whatsapp } from "../whatsapp/index.js";
+import type { IChatService } from "../services/chat-service.interface.js";
 
 /**
  * Handles incoming messages by coordinating the pipeline and the main agent.
@@ -32,7 +32,7 @@ export class MessageHandler {
     private groupFeaturesRepo: IGroupFeaturesRepository,
     private remindersRepo: IReminderRepository,
     private reminderService: ReminderService,
-    private whatsappClient: Whatsapp
+    private chatServiceFactory: (chatId: string) => IChatService
   ) {}
 
   /**
@@ -52,10 +52,12 @@ export class MessageHandler {
       message.sender.id
     );
 
+    const chatService = this.chatServiceFactory(message.chatId);
+
     const agentContext: AgentContext = {
       chatId: message.chatId,
       contactId: message.sender.id,
-      whatsappClient: this.whatsappClient,
+      chatService,
       contactMemoryRepo: this.contactMemoryRepo,
       groupFeaturesRepo: this.groupFeaturesRepo,
       messageRepo: this.messageRepository,

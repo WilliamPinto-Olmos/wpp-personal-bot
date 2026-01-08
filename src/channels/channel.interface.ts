@@ -14,4 +14,11 @@ export interface IMessageChannel {
     content: string,
     quotedMessageId?: string
   ): Promise<void>;
+
+  /**
+   * Sends a message to a specific chat without context.
+   * @param chatId - Destination chat ID
+   * @param content - Message content
+   */
+  sendMessage(chatId: string, content: string): Promise<void>;
 }

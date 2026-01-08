@@ -1,12 +1,14 @@
 import "dotenv/config";
 import { Application } from "./core/application.js";
+import { Container } from "./core/container.js";
 
 /**
  * Main application entry point.
  * Orchestrates the application lifecycle via the Application class.
  */
 async function main(): Promise<void> {
-  const app = new Application();
+  const container = new Container();
+  const app = new Application(container);
 
   try {
     await app.initialize();

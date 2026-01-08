@@ -33,7 +33,8 @@ describe("MessageHandler", () => {
     groupFeaturesRepo = { getFeatures: vi.fn() } as any;
     const remindersRepo = { findByChatAndContact: vi.fn(), save: vi.fn() } as any;
     const reminderService = { initialize: vi.fn(), createReminder: vi.fn() } as any;
-    whatsappClient = {} as any;
+    const chatService = { getMessages: vi.fn(), getParticipants: vi.fn() } as any;
+    const chatServiceFactory = vi.fn().mockReturnValue(chatService);
 
     handler = new MessageHandler(
       pipeline,
@@ -44,7 +45,7 @@ describe("MessageHandler", () => {
       groupFeaturesRepo,
       remindersRepo,
       reminderService,
-      whatsappClient
+      chatServiceFactory
     );
   });
 
