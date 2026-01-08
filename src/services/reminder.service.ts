@@ -1,19 +1,19 @@
-import type { Whatsapp } from "../whatsapp/index.js";
 import type { IReminderRepository } from "../repositories/index.js";
 import type { IReminderScheduler } from "../scheduler/scheduler.interface.js";
 import type { Reminder } from "../types/reminder.types.js";
+import type { INotificationChannel } from "../channels/notification.channel.interface.js";
 import { DateTime } from "luxon";
 import { randomUUID } from "node:crypto";
 
 /**
  * Service that orchestrates the lifecycle of reminders.
- * Coordinates persistence, scheduling, and delivery via WhatsApp.
+ * Coordinates persistence, scheduling, and delivery via notification channels.
  */
 export class ReminderService {
   constructor(
     private repository: IReminderRepository,
     private scheduler: IReminderScheduler,
-    private whatsappClient: Whatsapp
+    private notificationChannel: INotificationChannel
   ) {}
 
   /**
@@ -78,7 +78,7 @@ export class ReminderService {
       // We use a friendly message format
       const text = `🔔 *RECORDATORIO* 🔔\n\nHola! Me pediste que te recordara:\n"${reminder.message}"`;
       
-      await this.whatsappClient.sendText(reminder.chatId, text);
+      await this.notificationChannel.send(reminder.chatId, text);
 
       // Update status in repository
       await this.repository.update(reminder.id, { status: "delivered" });

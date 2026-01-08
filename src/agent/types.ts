@@ -1,4 +1,3 @@
-import type { Whatsapp } from "../whatsapp/index.js";
 import type { 
   IContactMemoryRepository, 
   IMessageRepository,
@@ -7,18 +6,19 @@ import type {
 } from "../repositories/index.js";
 import type { ContactMemory } from "../types/index.js";
 import type { ReminderService } from "../services/reminder.service.js";
+import type { IChatService } from "../services/chat-service.interface.js";
 
 /**
  * Context provided to the MainAgent and its tools.
- * Contains references to repositories and WhatsApp client.
+ * Contains references to repositories and chat services.
  */
 export interface AgentContext {
-  /** The WhatsApp chat identifier where the interaction is happening. */
+  /** The interaction identifier (e.g. WhatsApp chat ID). */
   chatId: string;
-  /** The WhatsApp contact identifiers of the user. */
+  /** The user identifier (e.g. WhatsApp contact ID). */
   contactId: string;
-  /** Reference to the WhatsApp client for making calls. */
-  whatsappClient: Whatsapp;
+  /** Service for interacting with the current chat. */
+  chatService: IChatService;
   /** Repository for contact memory. */
   contactMemoryRepo: IContactMemoryRepository;
   /** Repository for group features and permissions. */

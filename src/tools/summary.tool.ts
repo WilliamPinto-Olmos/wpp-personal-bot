@@ -1,7 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { AgentContext } from "../agent/types.js";
-import { fetchMessages, fetchGroupParticipants } from "../whatsapp/message-fetcher.js";
 import { matchContact } from "../ai/contact-matcher.js";
 import { generateSummary } from "../ai/summarizer.js";
 import { config } from "../config/index.js";
@@ -23,14 +22,10 @@ export const createSummaryTool = (ctx: AgentContext) => tool({
       config.bot.maxMessageCount
     );
 
-    let messages = await fetchMessages(
-      ctx.whatsappClient,
-      ctx.chatId,
-      count
-    );
+    let messages = await ctx.chatService.getMessages(count);
 
     if (contactFilter) {
-      const participants = await fetchGroupParticipants(ctx.whatsappClient, ctx.chatId);
+      const participants = await ctx.chatService.getParticipants();
       const matchedContact = await matchContact(contactFilter, participants);
       
       if (matchedContact) {
