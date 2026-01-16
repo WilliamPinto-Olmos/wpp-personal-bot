@@ -19,6 +19,20 @@ export class FirestoreReminderRepository implements IReminderRepository {
   }
 
   /**
+   * Converts Firestore document to Reminder with normalized dates.
+   */
+  private toReminder(doc: QueryDocumentSnapshot): Reminder {
+    const data = doc.data();
+    const triggerAt = data.triggerAt;
+    const createdAt = data.createdAt;
+    return {
+      ...data,
+      triggerAt: triggerAt instanceof Date ? triggerAt : (triggerAt as { toDate: () => Date }).toDate(),
+      createdAt: createdAt instanceof Date ? createdAt : (createdAt as { toDate: () => Date }).toDate(),
+    } as Reminder;
+  }
+
+  /**
    * Saves or updates a reminder in Firestore.
    */
   async save(reminder: Reminder): Promise<void> {
@@ -34,7 +48,7 @@ export class FirestoreReminderRepository implements IReminderRepository {
       .where("contactId", "==", contactId)
       .get();
 
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => this.toReminder(doc));
   }
 
   /**
@@ -43,12 +57,9 @@ export class FirestoreReminderRepository implements IReminderRepository {
    * Given the architecture, reminders are usually accessed in the context of a chat.
    */
   async findById(id: string): Promise<Reminder | null> {
-    // This is inefficient without chatId. Designing for most common use case.
-    // However, if needed, we could use a collectionGroup query.
     const snapshot = await db.collectionGroup("reminders").where("id", "==", id).get();
-    
     if (snapshot.empty) return null;
-    return snapshot.docs[0].data() as Reminder;
+    return this.toReminder(snapshot.docs[0]);
   }
 
   /**
@@ -80,6 +91,6 @@ export class FirestoreReminderRepository implements IReminderRepository {
       .where("status", "==", "pending")
       .get();
 
-    return snapshot.docs.map(doc => doc.data() as Reminder);
+    return snapshot.docs.map(doc => this.toReminder(doc));
   }
 }

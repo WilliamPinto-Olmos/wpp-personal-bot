@@ -48,11 +48,23 @@ export class ReminderService {
       status: "pending",
     };
 
-    console.log(`[ReminderService] Creating reminder ${reminder.id} for chat ${reminder.chatId}`, { reminder });
-
     await this.repository.save(reminder);
     this.scheduleReminder(reminder);
     return reminder;
+  }
+
+  /**
+   * Normalizes triggerAt to a JS Date.
+   * Handles both JS Date and Firebase Timestamp.
+   */
+  private normalizeTriggerAt(triggerAt: Date | { toMillis: () => number }): Date {
+    if (triggerAt instanceof Date) {
+      return triggerAt;
+    }
+    if (typeof (triggerAt as { toMillis?: () => number }).toMillis === "function") {
+      return new Date((triggerAt as { toMillis: () => number }).toMillis());
+    }
+    return new Date(triggerAt as unknown as string | number);
   }
 
   /**
@@ -60,18 +72,15 @@ export class ReminderService {
    */
   private scheduleReminder(reminder: Reminder): void {
     const now = new Date();
-    // @ts-expect-error Timestamp from Firestore comes as a Timestamp object
-    const triggerAtDate = DateTime.fromMillis(reminder.triggerAt.toMillis()).toJSDate();
+    const triggerAtDate = this.normalizeTriggerAt(reminder.triggerAt);
+    const normalizedReminder = { ...reminder, triggerAt: triggerAtDate };
 
-    reminder.triggerAt = triggerAtDate;
-    
     if (triggerAtDate <= now) {
-      // If it's in the past (e.g., missed while bot was down), trigger immediately or mark as delivered
-      this.triggerReminder(reminder);
+      this.triggerReminder(normalizedReminder);
       return;
     }
 
-    this.scheduler.schedule(reminder, () => this.triggerReminder(reminder));
+    this.scheduler.schedule(normalizedReminder, () => this.triggerReminder(normalizedReminder));
   }
 
   /**
